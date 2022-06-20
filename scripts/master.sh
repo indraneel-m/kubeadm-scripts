@@ -13,6 +13,7 @@ sudo apt-get install -y \
     gnupg \
     lsb-release
 
+sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
 echo \
@@ -36,8 +37,13 @@ cat <<EOF | sudo tee /etc/docker/daemon.json
 EOF
 
 sudo systemctl enable docker
+sudo systemctl enable containerd
+sudo rm /etc/containerd/config.toml
+sudo ufw disable
+sudo modprobe br_netfilter
+sudo sh -c "echo '1' > /proc/sys/net/ipv4/ip_forward"
+sudo systemctl restart containerd
 sudo systemctl daemon-reload
-sudo systemctl restart docker
 
 echo "Docker Runtime Configured Successfully"
 
@@ -57,11 +63,23 @@ sudo apt-get install -y kubelet kubeadm kubectl
 
 sudo apt-mark hold kubelet kubeadm kubectl
 
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+br_netfilter
+EOF
 
-IPADDR="10.0.0.10"
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sudo sysctl --system
+
+
+IPADDR=$(hostname -I | awk '{print $1}')
 
 NODENAME=$(hostname -s)
 
+sudo systemctl status containerd
+sudo systemctl status docker
 sudo kubeadm init --apiserver-advertise-address=$IPADDR  --apiserver-cert-extra-sans=$IPADDR  --pod-network-cidr=192.168.0.0/16 --node-name $NODENAME --ignore-preflight-errors Swap
 
 
@@ -69,6 +87,8 @@ mkdir -p $HOME/.kube
   sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
   sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-curl https://docs.projectcalico.org/manifests/calico.yaml -O
+#curl https://docs.projectcalico.org/manifests/calico.yaml -O
+#kubectl apply -f calico.yaml
 
-kubectl apply -f calico.yaml
+
+sudo apt-get install -y nvme-cli
