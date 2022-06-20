@@ -1,0 +1,60 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: manual
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: block-device
+spec:
+  storageClassName: manual
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 32Gi
+  volumeMode: Block
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: example-pv
+spec:
+  capacity:
+    storage: 32Gi
+  volumeMode: Block
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: manual
+  local:
+    path: /dev/nvme0n1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master-node
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ioping
+spec:
+  containers:
+  - name: ioping
+    image: hpestorage/ioping
+    command: [ "ioping" ]
+    args: [ "/dev/nvme0n1" ]
+    volumeDevices:
+    - name: raw
+      devicePath: /dev/nvme0n1
+  volumes:
+  - name: raw
+    persistentVolumeClaim:
+      claimName: block-device

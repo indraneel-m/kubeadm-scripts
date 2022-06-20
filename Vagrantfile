@@ -22,9 +22,10 @@ Vagrant.configure("2") do |config|
       end
       master.vm.provision :shell, path: "./scripts/master-setup.sh", privileged: false
       master.vm.provision :shell, path: "./scripts/startup.sh", privileged: false, run: 'always'
+      master.vm.synced_folder "testfiles/", "/home/vagrant/testfiles", type: "9p", accessmode: "passthrough"
     end
 
-    config.vm.define "node01" do |node01|
+    config.vm.define "master" do |node01|
       node01.vm.provider :libvirt do |libvirt|
         libvirt.cpus = 2
         libvirt.memory = 4096
