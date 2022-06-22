@@ -31,7 +31,7 @@ spec:
   persistentVolumeReclaimPolicy: Delete
   storageClassName: manual
   local:
-    path: /dev/nvme0n1
+    path: $TEST_BLKDEV
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -44,16 +44,17 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: ioping
+  name: ubuntu-pod
 spec:
   containers:
-  - name: ioping
-    image: hpestorage/ioping
-    command: [ "ioping" ]
-    args: [ "/dev/nvme0n1" ]
+  - name: ubuntu
+    image: ubuntu:22.10
+    imagePullPolicy: IfNotPresent
+    command: [ "/bin/sleep" ]
+    args: [ "3650d" ]
     volumeDevices:
     - name: raw
-      devicePath: /dev/nvme0n1
+      devicePath: $TEST_BLKDEV
   volumes:
   - name: raw
     persistentVolumeClaim:
