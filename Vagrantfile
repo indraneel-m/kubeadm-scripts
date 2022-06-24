@@ -8,7 +8,7 @@ Vagrant.configure("2") do |config|
     SHELL
 
     config.vm.define "master" do |master|
-      master.vm.box = "generic/ubuntu2010"
+      master.vm.box = "generic/debian11"
       master.vm.hostname = "master-node"
       master.vm.network "private_network", ip: "192.168.200.10"
       master.vm.provider :libvirt do |libvirt|
@@ -16,10 +16,7 @@ Vagrant.configure("2") do |config|
         libvirt.memory = 4096
         libvirt.cpu_mode = "host-passthrough"
       end
-      master.vm.provision :shell do |shell|
-        shell.path = "./scripts/vm-setup.sh"
-        shell.reboot = true
-      end
+      master.vm.provision :shell, path: "./scripts/vm-setup.sh", privileged: false
       master.vm.provision :shell, path: "./scripts/master-setup.sh", privileged: false
       master.vm.provision :shell, path: "./scripts/startup.sh", privileged: false, run: 'always'
       master.vm.synced_folder "testfiles/", "/home/vagrant/testfiles", type: "9p", accessmode: "passthrough"
@@ -38,7 +35,7 @@ Vagrant.configure("2") do |config|
     (1..2).each do |i|
 
     config.vm.define "node0#{i}" do |node|
-      node.vm.box = "generic/ubuntu2010"
+      node.vm.box = "generic/debian11"
       node.vm.hostname = "worker-node0#{i}"
       node.vm.network "private_network", ip: "192.168.200.1#{i}"
       node.vm.provider :libvirt do |libvirt|
@@ -46,10 +43,7 @@ Vagrant.configure("2") do |config|
         libvirt.memory = 4096
         libvirt.cpu_mode = "host-passthrough"
       end
-      node.vm.provision :shell do |shell|
-        shell.path = "./scripts/vm-setup.sh"
-        shell.reboot = true
-      end
+      node.vm.provision :shell, path: "./scripts/vm-setup.sh", privileged: false
       node.vm.provision :shell, path: "./scripts/startup.sh", privileged: false, run: 'always'
     end
     end
