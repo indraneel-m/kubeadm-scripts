@@ -98,3 +98,10 @@ RUN apt-get install --yes --quiet=2 \
     && ./configure \
     && make -j \
     && make install
+
+# Copy benchmark files into docker image
+RUN mkdir /output
+COPY *.sh *.cnf /output/
+RUN apt-get install --yes --quiet=2 \
+    gettext-base
+

@@ -51,8 +51,8 @@ spec:
   containers:
   - name: myrocks-sysbench
     image: master-node:5000/repo/myrocks-sysbench:latest
-    command: [ "/bin/sleep" ]
-    args: [ "3650d" ]
+    command: [ "/bin/bash" ]
+    args: [ "/output/exec_sysbench.sh", "$TEST_BLKDEV" ]
     volumeDevices:
     - name: raw
       devicePath: $TEST_BLKDEV

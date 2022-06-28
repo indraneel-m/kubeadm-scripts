@@ -1,6 +1,7 @@
 #!/bin/bash
 #https://www.redhat.com/sysadmin/simple-container-registry#:~:text=Push%2Fpull%20images%20to%20the%20registry&text=To%20push%20to%20the%20registry,and%20then%20push%20the%20image.&text=With%20the%20private%20registry%20implemented,the%20list%20of%20supported%20registries.
 #https://stackoverflow.com/questions/64814173/how-do-i-use-sans-with-openssl-instead-of-common-name
+#https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 sudo sh -c 'echo "insecure = false" >> /etc/containers/registries.conf'
 sudo systemctl restart containerd
 sudo systemctl status containerd
