@@ -1,0 +1,62 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: local-storage-class
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: raw-block-device
+spec:
+  storageClassName: local-storage-class
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 32Gi
+  volumeMode: Block
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: example-pv
+spec:
+  capacity:
+    storage: 32Gi
+  volumeMode: Block
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage-class
+  local:
+    path: $TEST_BLKDEV
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master-node
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myrocks-sysbench-pod
+spec:
+  imagePullSecrets:
+  - name: regcred
+  containers:
+  - name: myrocks-sysbench
+    image: master-node:5000/repo/myrocks-sysbench:latest
+    command: [ "/bin/sleep" ]
+    args: [ "3650d" ]
+    volumeDevices:
+    - name: raw
+      devicePath: $TEST_BLKDEV
+  volumes:
+  - name: raw
+    persistentVolumeClaim:
+      claimName: raw-block-device
