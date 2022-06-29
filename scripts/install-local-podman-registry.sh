@@ -16,6 +16,7 @@ sudo mkdir /etc/containers/certs.d/master-node:5000
 sudo cp /opt/registry/certs/domain.crt /etc/containers/certs.d/master-node:5000/ca.crt
 sudo update-ca-certificates
 exit
+podman images
 sudo podman run --name myregistry \
        -p 5000:5000 \
        -v /opt/registry/data:/var/lib/registry:z \
@@ -37,7 +38,7 @@ kubectl create secret generic regcred \
 # and then specify the following in the pod deployment
 #imagePullSecrets:
 #- name: regcred
-exit
+#exit
 cd /home/vagrant/testfiles/myrocks-sysbench
 ./build.sh
 podman image tag localhost/myrocks-sysbench:latest master-node:5000/repo/myrocks-sysbench:latest
