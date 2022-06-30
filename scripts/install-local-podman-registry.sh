@@ -2,7 +2,7 @@
 #https://www.redhat.com/sysadmin/simple-container-registry#:~:text=Push%2Fpull%20images%20to%20the%20registry&text=To%20push%20to%20the%20registry,and%20then%20push%20the%20image.&text=With%20the%20private%20registry%20implemented,the%20list%20of%20supported%20registries.
 #https://stackoverflow.com/questions/64814173/how-do-i-use-sans-with-openssl-instead-of-common-name
 #https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-sudo sh -c 'echo "insecure = false" >> /etc/containers/registries.conf'
+sudo sh -c 'echo "insecure = true" >> /etc/containers/registries.conf'
 sudo systemctl restart containerd
 sudo systemctl status containerd
 sudo apt-get update -y
@@ -16,7 +16,8 @@ sudo mkdir /etc/containers/certs.d/master-node:5000
 sudo cp /opt/registry/certs/domain.crt /etc/containers/certs.d/master-node:5000/ca.crt
 sudo update-ca-certificates
 exit
-podman images
+#The following lines somehow error out when executing as a vagrant provisioning step.
+#Therefore the lines are executed when applying a deployment that needs a local image.
 sudo podman run --name myregistry \
        -p 5000:5000 \
        -v /opt/registry/data:/var/lib/registry:z \
@@ -38,7 +39,6 @@ kubectl create secret generic regcred \
 # and then specify the following in the pod deployment
 #imagePullSecrets:
 #- name: regcred
-#exit
 cd /home/vagrant/testfiles/myrocks-sysbench
 ./build.sh
 podman image tag localhost/myrocks-sysbench:latest master-node:5000/repo/myrocks-sysbench:latest
