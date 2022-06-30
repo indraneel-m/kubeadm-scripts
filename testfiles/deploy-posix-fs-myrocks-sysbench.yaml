@@ -1,0 +1,23 @@
+#!/bin/bash
+sudo umount /mnt/test
+set -e
+set -x
+
+cd ~/testfiles/myrocks-sysbench
+bash ./build.sh
+cd -
+
+export TEST_BLKDEV="${TEST_BLKDEV:-/dev/nvme1n1}"
+dev=${TEST_BLKDEV##*/}
+zoned=$(cat /sys/block/${dev}/queue/zoned)
+if [ "host-managed" == "$zoned" ]; then
+    sudo sh -c "echo 'mq-deadline' > /sys/block/${dev}/queue/scheduler"
+    sudo blkzone reset /dev/$dev
+fi
+
+sudo mkfs.btrfs -m single -d single /dev/$dev -f
+sudo mkdir -p /mnt/test
+sudo mount -t btrfs /dev/$dev /mnt/test
+
+cat ./posix-fs-myrocks-sysbench.yaml | envsubst
+cat ./posix-fs-myrocks-sysbench.yaml | envsubst | kubectl apply -f -

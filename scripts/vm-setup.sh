@@ -25,6 +25,8 @@ sudo apt-get -y install \
      podman \
      ca-certificates \
      gnupg \
+     btrfs-progs \
+     xfsprogs \
      curl
 sudo mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml
