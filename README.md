@@ -14,6 +14,11 @@ sudo systemctl start libvirtd
 
 vagrant plugin install vagrant-libvirt
 ```
+- Install podman in order to build a new kernel that will be applied to the nodes.
+```
+sudo apt install podman
+```
+If you wish to run a specific kernel on your nodes run the `generate-kernel.sh` script in `scripts/kernel-builder`. Environment variables `GIT_KERNEL_SOURCE` and `GIT_KERNEL_CHECKOUT` can be set to overwrite the default kernel selection which is the Linux master tree.
 
 ## Setup
 To spin up a Kubernetes master and two node instances simply run: 

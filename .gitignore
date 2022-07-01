@@ -12,3 +12,7 @@
 *.box
 
 # End of https://www.toptal.com/developers/gitignore/api/vagrant
+
+
+### Kernel debian packages
+scripts/kernel-builder/kernel-deb-packages.tar
