@@ -7,7 +7,7 @@ cd ~/testfiles/myrocks-sysbench
 bash ./build.sh
 cd -
 
-export TEST_BLKDEV="${TEST_BLKDEV:-/dev/nvme1n1}"
+export TEST_BLKDEV="${TEST_BLKDEV:-/dev/nvme0n2}"
 dev=${TEST_BLKDEV##*/}
 zoned=$(cat /sys/block/${dev}/queue/zoned)
 if [ "host-managed" == "$zoned" ]; then

@@ -25,7 +25,6 @@ sudo apt-get -y install \
      podman \
      ca-certificates \
      gnupg \
-     btrfs-progs \
      xfsprogs \
      curl
 sudo mkdir -p /etc/containerd
@@ -33,6 +32,36 @@ containerd config default | sudo tee /etc/containerd/config.toml
 sudo sed -i '/.*containerd.runtimes.runc.options.*/a SystemdCgroup = true' /etc/containerd/config.toml
 sudo systemctl restart containerd
 sudo systemctl status containerd
+
+#Install btrfs-progs
+sudo apt-get update -y
+sudo apt-get -y install \
+     git \
+     uuid-dev \
+     libblkid-dev \
+     liblzo2-dev \
+     zlib1g-dev \
+     zlib1g \
+     libzstd-dev \
+     libudev-dev \
+     libgcrypt-dev \
+     libsodium-dev \
+     libkcapi-dev \
+     e2fslibs-dev \
+     python3-dev \
+     python3-pip \
+     python-is-python3 \
+     python3-sphinx
+
+git clone https://github.com/kdave/btrfs-progs.git
+cd btrfs-progs
+git checkout v5.18
+./autogen.sh
+./configure --disable-documentation --enable-zoned
+make
+sudo make install
+cd ..
+rm -r btrfs-progs
 
 #Kubernetes
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
