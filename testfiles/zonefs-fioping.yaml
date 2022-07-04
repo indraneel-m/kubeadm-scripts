@@ -1,0 +1,103 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: local-storage-class
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-fs-device
+spec:
+  storageClassName: local-storage-class
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Mi
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-zf0
+spec:
+  capacity:
+    storage: 1Mi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage-class
+  local:
+    path: ${ZONEFS_FILE_PREFIX}/seq/0
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master-node
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-zf1
+spec:
+  capacity:
+    storage: 1Mi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage-class
+  local:
+    path: ${ZONEFS_FILE_PREFIX}/seq/1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - master-node
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fioping-zf0
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: fioping
+    image: xridge/fio
+    command: [ "fio" ]
+    args: [ "--name=seqwrite", "--filename=${ZONEFS_FILE_PREFIX}/seq/0", "--create_on_open=0", "--allow_file_create=0", "--file_append=1", "--unlink=0", "--rw=write", "--ioengine=psync", "--iodepth=64", "--max-jobs=8", "--bs=4k", "--size=1M", "--verify=md5", "--do_verify=1", "--continue_on_error=none", "--direct=1"]
+    volumeMounts:
+    - name: fs
+      mountPath: ${ZONEFS_FILE_PREFIX}/seq/0
+  volumes:
+  - name: fs
+    hostPath:
+      path: ${ZONEFS_FILE_PREFIX}/seq/0
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fioping-zf1
+spec:
+  restartPolicy: OnFailure
+  containers:
+  - name: fioping
+    image: xridge/fio
+    command: [ "fio" ]
+    args: [ "--name=seqwrite", "--filename=${ZONEFS_FILE_PREFIX}/seq/1", "--create_on_open=0", "--allow_file_create=0", "--file_append=1", "--unlink=0", "--rw=write", "--ioengine=psync", "--iodepth=64", "--max-jobs=8", "--bs=4k", "--size=1M", "--verify=md5", "--do_verify=1", "--continue_on_error=none", "--direct=1"]
+    volumeMounts:
+    - name: fs
+      mountPath: ${ZONEFS_FILE_PREFIX}/seq/1
+  volumes:
+  - name: fs
+    hostPath:
+      path: ${ZONEFS_FILE_PREFIX}/seq/1

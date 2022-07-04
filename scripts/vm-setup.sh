@@ -33,7 +33,7 @@ sudo sed -i '/.*containerd.runtimes.runc.options.*/a SystemdCgroup = true' /etc/
 sudo systemctl restart containerd
 sudo systemctl status containerd
 
-#Install btrfs-progs
+#Install btrfs-progs (optional)
 sudo apt-get update -y
 sudo apt-get -y install \
      git \
@@ -61,7 +61,26 @@ git checkout v5.18
 make
 sudo make install
 cd ..
-rm -r btrfs-progs
+sudo rm -r btrfs-progs
+
+#Install zonefs-tools (optional)
+sudo apt-get update -y
+sudo apt-get -y install \
+     m4 \
+     autoconf \
+     automake \
+     libtool \
+     uuid-dev \
+     libblkid-dev
+
+git clone https://github.com/damien-lemoal/zonefs-tools.git
+cd zonefs-tools
+sh ./autogen.sh
+./configure
+make
+sudo make install
+cd ..
+sudo rm -r zonefs-tools
 
 #Kubernetes
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
