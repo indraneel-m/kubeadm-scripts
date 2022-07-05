@@ -1,0 +1,54 @@
+apiVersion: "openebs.io/v1alpha1"
+kind: MayastorPool
+metadata:
+  name: pool-on-node-1
+  namespace: mayastor
+spec:
+  node: master-node
+  disks: ["/dev/nvme1n1"]
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: mayastor-1
+parameters:
+  repl: '1'
+  protocol: 'nvmf'
+  ioTimeout: '60'
+  local: 'true'
+provisioner: io.openebs.csi-mayastor
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ms-volume-claim
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: mayastor-1
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: fio
+spec:
+  nodeSelector:
+    openebs.io/engine: mayastor
+  volumes:
+    - name: ms-volume
+      persistentVolumeClaim:
+        claimName: ms-volume-claim
+  containers:
+    - name: fio
+      image: nixery.dev/shell/fio
+      args:
+        - sleep
+        - "1000000"
+      volumeMounts:
+        - mountPath: "/volume"
+          name: ms-volume
+#kubectl exec -it fio -- fio --name=benchtest --size=800m --filename=/volume/test --direct=1 --rw=randrw --ioengine=libaio --bs=4k --iodepth=16 --numjobs=8 --time_based --runtime=60

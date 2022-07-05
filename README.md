@@ -23,10 +23,10 @@ If you wish to run a specific kernel on your nodes run the `generate-kernel.sh` 
 ## Setup
 To spin up a Kubernetes master and two node instances simply run: 
 ```
-vagrant up
+./setup-cluster.sh
 ```
 
-Login to the virtual machines with
+Login to the virtual machine of the master node with
 ```
 vagrant ssh master
 ```
@@ -54,3 +54,17 @@ Nodes might have locally attached storage. This storage can be exposed to pods e
 * `testfiles/deploy-myrocks-sysbench.sh`: This deployment is passing the raw ZBD specified in the `TEST_BLKDEV` environment variable into a pod which setups a MyRocks instance on the raw ZBD through the ZenFS RocksDB plugin.
 * `testfiles/deploy-posix-fs-myrocks-sysbench.sh`: This deployment is createing and mounting btrfs on the node backed by a raw ZBD (or any other block device) specified in the `TEST_BLKDEV` environment variable. The mount point is then passed into a pod which setups a MyRocks instance on this filesystem mount point.
 * `testfiles/deploy-zonefs-fioping.sh`: This deployment is creating and mounting ZoneFS on the node backed by a raw ZBD specified in the `TEST_BLKDEV` environment variable. Two different zone files are passed into two different pods which issue a simple (direct) sequential write workload on the given zone file.
+
+
+### Mayastor
+Deploy Mayastor setup on the master node with:
+```
+cd testfiles/mayastor
+./deploy-mayastor.sh
+```
+
+Now the test application from the [quickstart-guide](https://mayastor.gitbook.io/introduction/quickstart/deploy-a-test-application) can be deployed and tested with:
+```
+kubectl apply -f mayastor-helloworld-testapp.yaml
+kubectl exec -it fio -- fio --name=benchtest --size=800m --filename=/volume/test --direct=1 --rw=randrw --ioengine=libaio --bs=4k --iodepth=16 --numjobs=8 --time_based --runtime=60
+```

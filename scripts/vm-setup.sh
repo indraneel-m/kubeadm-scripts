@@ -1,5 +1,9 @@
 #!/bin/bash
 # Following this guide: https://www.hostafrica.co.za/blog/servers/kubernetes-cluster-debian-11-containerd/
+# Enable Huge Page Support for mayastor https://mayastor.gitbook.io/introduction/quickstart/preparing-the-cluster
+echo 1024 | sudo tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+echo vm.nr_hugepages = 1024 | sudo tee -a /etc/sysctl.conf
+
 # Configuration
 cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
 overlay

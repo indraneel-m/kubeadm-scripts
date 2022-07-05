@@ -46,8 +46,8 @@ Vagrant.configure("2") do |config|
       node.vm.hostname = "worker-node0#{i}"
       node.vm.network "private_network", ip: "192.168.200.1#{i}"
       node.vm.provider :libvirt do |libvirt|
-        libvirt.cpus = 2
-        libvirt.memory = 4096
+        libvirt.cpus = 3
+        libvirt.memory = 8192
         libvirt.cpu_mode = "host-passthrough"
       end
       node.vm.provision :shell, path: "./scripts/vm-setup.sh", privileged: false
