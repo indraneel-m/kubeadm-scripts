@@ -10,19 +10,20 @@ sudo modprobe nvmet
 sudo modprobe nvmet-tcp
 
 sudo nvme disconnect-all
-sudo blkzone reset /dev/nvme0n2
+sudo blkzone reset /dev/nvme3n2
 
-ip=10.0.0.1
 
 # https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/managing_storage_devices/nvme-over-fabrics-using-rdma_managing-storage-devices#setting-up-the-nvme-rdma-target-using-nvmetcli_nvme-over-fabrics-using-rdma
+# pip3 install configshell-fb
+# sudo pip3 install configshell-fb
 cd ~/src/nvmetcli
 sudo python3 nvmetcli clear
 sudo python3 nvmetcli restore zns-test-tcp.json
 
+ip=10.0.0.1
 #sudo nvme discover -t tcp -a $ip -s 4420
 #sudo nvme connect -t tcp -n nvmet-always -a $ip -s 4420
 #sudo nvme disconnect-all
-
 
 exit 0
 dev=nvme0n2

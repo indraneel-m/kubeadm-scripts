@@ -23,11 +23,12 @@ if [ $regcredActive -ne 0 ]; then
     kubectl create secret generic regcred \
             --from-file=.dockerconfigjson=/run/user/1000/containers/auth.json \
             --type=kubernetes.io/dockerconfigjson
+    # --namespace=kube-system
     # and then specify the new image name (including master-node:5000/repo/) and the following in the pod deployment right under the spec:
     #imagePullSecrets:
     #- name: regcred
 fi
 
-podman build -t myrocks-sysbench .
-podman image tag localhost/myrocks-sysbench:latest master-node:5000/repo/myrocks-sysbench:latest
-podman image push master-node:5000/repo/myrocks-sysbench:latest
+#podman build -t myrocks-sysbench .
+#podman image tag localhost/myrocks-sysbench:latest master-node:5000/repo/myrocks-sysbench:latest
+#podman image push master-node:5000/repo/myrocks-sysbench:latest
