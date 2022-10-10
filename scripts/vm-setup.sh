@@ -149,8 +149,8 @@ sudo apt-get update -y
 sudo apt-get install -y wget
 wget https://golang.org/dl/go1.17.linux-amd64.tar.gz
 sudo tar -zxvf go1.17.linux-amd64.tar.gz -C /usr/local/
-#rm go1.17.linux-amd64.tar.gz
+rm go1.17.linux-amd64.tar.gz
 #echo "export PATH=/usr/local/go/bin:${PATH}" | sudo tee /etc/profile.d/go.sh
 #source /etc/profile.d/go.sh
-#echo "export PATH=/usr/local/go/bin:${PATH}" | sudo tee -a $HOME/.profile
+echo "export PATH=/usr/local/go/bin:${PATH}" | sudo tee -a $HOME/.profile
 #source $HOME/.profile

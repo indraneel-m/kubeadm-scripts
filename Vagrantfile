@@ -30,8 +30,8 @@ Vagrant.configure("2") do |config|
         libvirt.cpus = 8
         libvirt.memory = 81920
         libvirt.cpu_mode = "host-passthrough"
-        libvirt.pci :bus => '0x01', :slot => '0x00', :function => '0x0'
-        libvirt.pci :bus => '0x02', :slot => '0x00', :function => '0x0'
+#        libvirt.pci :bus => '0x01', :slot => '0x00', :function => '0x0'
+#        libvirt.pci :bus => '0x02', :slot => '0x00', :function => '0x0'
       end
       master.vm.provision :shell, path: "./scripts/vm-setup.sh", privileged: false
       master.vm.provision :shell, path: "./scripts/master-setup.sh", privileged: false
