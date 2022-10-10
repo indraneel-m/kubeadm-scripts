@@ -5,6 +5,7 @@ Vagrant.configure("2") do |config|
         echo "192.168.200.10  master-node" >> /etc/hosts
         echo "192.168.200.11  worker-node01" >> /etc/hosts
         echo "192.168.200.12  worker-node02" >> /etc/hosts
+        echo "192.168.200.13  worker-node03" >> /etc/hosts
     SHELL
 
     $kernel_dep_packages = './scripts/kernel-builder/kernel-deb-packages.tar'
@@ -34,12 +35,11 @@ Vagrant.configure("2") do |config|
       end
       master.vm.provision :shell, path: "./scripts/vm-setup.sh", privileged: false
       master.vm.provision :shell, path: "./scripts/master-setup.sh", privileged: false
-      master.vm.provision :shell, path: "./scripts/install-local-podman-registry.sh", privileged: false
       master.vm.provision :shell, path: "./scripts/startup.sh", privileged: false, run: 'always'
       master.vm.synced_folder "testfiles/", "/home/vagrant/testfiles", type: "9p", accessmode: "passthrough"
     end
 
-    (1..2).each do |i|
+    (1..3).each do |i|
 
     config.vm.define "node0#{i}" do |node|
       node.vm.box = "generic/debian11"

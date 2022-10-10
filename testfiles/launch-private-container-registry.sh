@@ -1,34 +1,42 @@
 #!/bin/bash
 set -x
-
-kubectl get secret regcred
-regcredActive=$?
 set -e
-if [ $regcredActive -ne 0 ]; then
-    sudo podman run --name myregistry \
+
+#The following is happening in the setup scripts:
+# https://thenewstack.io/tutorial-host-a-local-podman-image-registry/
+#In /etc/containerd/config.toml add the following:
+#[plugins."io.containerd.grpc.v1.cri".registry.mirrors."master-node:5000"]
+#  endpoint = ["http://master-node:5000"]
+#  [plugins."io.containerd.grpc.v1.cri".registry.configs]
+#    [plugins."io.containerd.grpc.v1.cri".registry.configs."master-node:5000".tls]
+#      insecure_skip_verify = true'
+
+#And then do the following:
+#sudo systemctl restart containerd
+#sudo crictl config runtime-endpoint /run/containerd/containerd.sock
+
+
+#cat <<EOF | sudo tee -a /etc/containers/registries.conf
+#unqualified-search-registries = ['master-node:5000', 'docker.io', 'quay.io', 'registry.fedoraproject.org']
+#[[registry]]
+#location = "master-node:5000"
+#insecure = true
+#EOF
+#sudo systemctl restart podman
+
+# Spin up the registry on the master node
+count=$(sudo podman ps --filter name=myregistry | wc -l)
+if [ $count -lt 2 ]
+then
+    sudo mkdir -p /var/lib/registry
+    sudo podman run --privileged -d \
+        --name myregistry \
         -p 5000:5000 \
-        -v /opt/registry/data:/var/lib/registry:z \
-        -v /opt/registry/auth:/auth:z \
-        -e "REGISTRY_AUTH=htpasswd" \
-        -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
-        -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
-        -v /opt/registry/certs:/certs:z \
-        -e "REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt" \
-        -e "REGISTRY_HTTP_TLS_KEY=/certs/domain.key" \
-        -e REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED=true \
-        -d \
-        docker.io/library/registry:latest
-
-    podman login -u registryuser -p registryuserpassword master-node:5000
-    kubectl create secret generic regcred \
-            --from-file=.dockerconfigjson=/run/user/1000/containers/auth.json \
-            --type=kubernetes.io/dockerconfigjson
-    # --namespace=kube-system
-    # and then specify the new image name (including master-node:5000/repo/) and the following in the pod deployment right under the spec:
-    #imagePullSecrets:
-    #- name: regcred
+        -v /var/lib/registry:/var/lib/registry \
+        --restart=always registry:2
 fi
-
 #podman build -t myrocks-sysbench .
-#podman image tag localhost/myrocks-sysbench:latest master-node:5000/repo/myrocks-sysbench:latest
-#podman image push master-node:5000/repo/myrocks-sysbench:latest
+#podman image tag localhost/myrocks-sysbench:latest master-node:5000/myrocks-sysbench:latest
+#podman image push master-node:5000/myrocks-sysbench:latest
+# From a worker node
+#podman pull master-node:5000/myrocks-sysbench:latest

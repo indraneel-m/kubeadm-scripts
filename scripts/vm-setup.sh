@@ -30,12 +30,47 @@ sudo apt-get -y install \
      ca-certificates \
      gnupg \
      xfsprogs \
-     curl
+     curl \
+     coreutils
+
+#The following steps are commented out because etc-contaierd-config.toml is being copied beforehand.
 sudo mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml
 sudo sed -i '/.*containerd.runtimes.runc.options.*/a SystemdCgroup = true' /etc/containerd/config.toml
+
+# Local registry preperation crictl
+#And apply the following #https://stackoverflow.com/questions/65681045/adding-insecure-registry-in-containerd
+awk '/endpoint/{print $0 "\n[plugins.\"io.containerd.grpc.v1.cri\".registry.mirrors.\"master-node:5000\"]\nendpoint = [\"http://master-node:5000\"]\n[plugins.\"io.containerd.grpc.v1.cri\".registry.configs]\n[plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"master-node:5000\".tls]\ninsecure_skip_verify = true";next}1' /etc/containerd/config.toml | sudo tee /etc/containerd/config.toml
+#The previous line adds in /etc/containerd/config.toml under 'endpoint = ["https://registry-1.docker.io"]' the following lines:
+#[plugins."io.containerd.grpc.v1.cri".registry.mirrors."master-node:5000"]
+#  endpoint = ["http://master-node:5000"]
+#  [plugins."io.containerd.grpc.v1.cri".registry.configs]
+#    [plugins."io.containerd.grpc.v1.cri".registry.configs."master-node:5000".tls]
+#      insecure_skip_verify = true' /etc/containerd/config.toml
+
 sudo systemctl restart containerd
 sudo systemctl status containerd
+sudo crictl config runtime-endpoint /run/containerd/containerd.sock
+
+# Local registry preperation podman
+cat <<EOF | sudo tee -a /etc/containers/registries.conf
+unqualified-search-registries = ['master-node:5000', 'docker.io', 'quay.io', 'registry.fedoraproject.org']
+
+[[registry]]
+location = "master-node:5000"
+insecure = true
+EOF
+sudo systemctl restart containerd
+sudo systemctl restart podman
+
+#Install tools
+sudo apt-get update -y
+sudo apt-get -y install \
+     nvme-cli \
+     fio
+
+sudo modprobe nvmet
+sudo modprobe nvme-tcp
 
 #Install btrfs-progs (optional)
 sudo apt-get update -y
@@ -107,3 +142,15 @@ sudo apt-mark hold kubelet kubeadm kubectl
 #sudo ufw reload
 sudo swapoff –a
 sudo systemctl enable kubelet
+
+
+#Install go
+sudo apt-get update -y
+sudo apt-get install -y wget
+wget https://golang.org/dl/go1.17.linux-amd64.tar.gz
+sudo tar -zxvf go1.17.linux-amd64.tar.gz -C /usr/local/
+#rm go1.17.linux-amd64.tar.gz
+#echo "export PATH=/usr/local/go/bin:${PATH}" | sudo tee /etc/profile.d/go.sh
+#source /etc/profile.d/go.sh
+#echo "export PATH=/usr/local/go/bin:${PATH}" | sudo tee -a $HOME/.profile
+#source $HOME/.profile
