@@ -19,18 +19,22 @@ Scripts &amp; Kubernetes manifests for Kubeadm Kubernetes cluster setup
 
     vagrant plugin install vagrant-libvirt
     ```
-- Install podman in order to build a new kernel that will be applied to the nodes.
+- Custom Kernel: Install podman in order to build a new kernel that will be applied to the nodes.
     ```
     sudo apt install podman
     ```
 
-If you wish to run a specific kernel on your nodes run the `generate-kernel.sh` script in `scripts/kernel-builder`. Environment variables `GIT_KERNEL_SOURCE` and `GIT_KERNEL_CHECKOUT` can be set to overwrite the default kernel selection which is the Linux master tree:
+    If you wish to run a specific kernel on your nodes run the `generate-kernel.sh` script in `scripts/kernel-builder`. Environment variables `GIT_KERNEL_SOURCE` and `GIT_KERNEL_CHECKOUT` can be set to overwrite the default kernel selection which is the Linux master tree:
     ```
     cd scripts/kernel-builder
     # The following takes some time. Pick up a cup of coffee in the meantime (or any other favorite drink)
     GIT_KERNEL_SOURCE=https://github.com/torvalds/linux.git GIT_KERNEL_CHECKOUT=v5.19 ./generate-kernel.sh
     cd -
     ```
+
+- Sharing files
+    Files are shared using 9p filesystem using the passthrough mode. This approach requires that qemu runs in root mode. If you do not want to run qemu as root. Then you may either chown the testfiles directory to the qemu user, or add the qemu user to be part of a group that does have access to the directory. In case this is done, update the 9p synced_folder line in the 'Vagrantfile' from 'passthrough' to 'mapped'.
+        
 
 ## Setup
 To spin up a Kubernetes master and two node instances run: 
