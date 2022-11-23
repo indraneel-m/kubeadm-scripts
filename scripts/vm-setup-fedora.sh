@@ -91,7 +91,6 @@ awk '/.registry.configs]/{print $0 "\n[plugins.\"io.containerd.grpc.v1.cri\".reg
 sudo mv ~/config.toml /etc/containerd
 rm ~/temp_config.toml
 
-
 # Local registry preperation crictl(Debian) - does NOT work on Fedora
 #And apply the following #https://stackoverflow.com/questions/65681045/adding-insecure-registry-in-containerd
 #awk '/endpoint/{print $0 "\n[plugins.\"io.containerd.grpc.v1.cri\".registry.mirrors.\"master-node:5000\"]\nendpoint = [\"http://master-node:5000\"]\n[plugins.\"io.containerd.grpc.v1.cri\".registry.configs]\n[plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"master-node:5000\".tls]\ninsecure_skip_verify = true";next}1' /etc/containerd/config.toml | sudo tee /etc/containerd/config.toml

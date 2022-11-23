@@ -2,7 +2,7 @@
 Scripts &amp; Kubernetes manifests for Kubeadm Kubernetes cluster setup
 
 ## Prerequisites
-- Install vagrant: https://www.vagrantup.com/docs/installation
+- Install vagrant: https://www.vagrantup.com/docs/installation (skip this for Fedora as Fedora already packages vagrant)
 - Install libvirt and the vagrant libvirt plugin:
   - Debian:
     ```
@@ -12,12 +12,21 @@ Scripts &amp; Kubernetes manifests for Kubeadm Kubernetes cluster setup
     ```
     sudo apt install build-dep ruby-libvirt qemu libvirt-daemon libvirt-daemon-system libvirt-daemon-system-systemd libvirt-clients ebtables dnsmasq-base libxslt1-dev libxml2-dev libvirt-dev zlib1g-dev ruby-dev libguestfs-tools vagrant
     ```
+  - Fedora:
+    ```
+    sudo dnf install @virtualization
+    sudo dnf install rubygem-ruby-libvirt qemu dnsmasq dnsmasq-utils libxslt-devel libxml2-devel libvirt-devel zlib-devel libguestfs-tools util-linux
+    ```
 
  - Start libvirtd and install the vagrant libvirt plugin
     ```
-    sudo systemctl start libvirtd
+    sudo systemctl enable --now libvirtd
 
     vagrant plugin install vagrant-libvirt
+
+    sudo systemctl enable --now virtnetworkd [Fedora]
+
+    usermod --append --groups libvirt `whoami` [Fedora - else password is asked and also failure on headless ssh vagrant execution]
     ```
 - Custom Kernel: Install podman in order to build a new kernel that will be applied to the nodes.
     ```
@@ -83,4 +92,35 @@ Now the test application from the [quickstart-guide](https://mayastor.gitbook.io
 ```
 kubectl apply -f mayastor-helloworld-testapp.yaml
 kubectl exec -it fio -- fio --name=benchtest --size=800m --filename=/volume/test --direct=1 --rw=randrw --ioengine=libaio --bs=4k --iodepth=16 --numjobs=8 --time_based --runtime=60
+```
+
+### Common errors and solutions
+In-case of the error 'Name 'kubeadm-scripts-master' o domain about to create already taken. Please try to run vagrant up again'
+virsh vol-list default
+virsh destroy failing_domain_name
+
+### Common Mayastor commands
+```
+kubectl delete -f <prev-applied-spec.yaml> [to delete the underlying pool/pv/pvc/pod]
+kubectl delete pod task-pv-pod
+kubectl delete pvc task-pv-claim
+kubectl delete pv task-pv-volume
+
+kubectl -n mayastor get pods -o wide
+kubectl -n mayastor logs <podname> mayastor [podname obtained from above cmd]
+
+journalctl -xeu containerd.service [to view logs]
+
+kubectl get nodes
+kubectl get pods
+
+kubectl get pod <podname>
+kubectl get pvc <pvcname>
+kubectl get pv <pvname>
+
+kubectl describe node <nodename>
+kubectl describe pod <podname>
+kubectl describe pvc <pvcname> -n <namespace>
+kubectl describe msp <poolname> -n <namespace>
+kubectl getpods --field-selector=status.phase=Pending
 ```

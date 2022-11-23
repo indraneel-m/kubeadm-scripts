@@ -15,7 +15,7 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 32Gi
+      storage: 1Gi
   volumeMode: Block
 ---
 apiVersion: v1
@@ -24,7 +24,7 @@ metadata:
   name: example-pv
 spec:
   capacity:
-    storage: 32Gi
+    storage: 1Gi
   volumeMode: Block
   accessModes:
   - ReadWriteOnce

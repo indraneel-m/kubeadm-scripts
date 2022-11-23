@@ -5,7 +5,7 @@ metadata:
   namespace: mayastor
 spec:
   node: master-node
-  disks: ["/dev/nvme1n1"]
+  disks: ["/dev/nvme0n1"]
 ---
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
@@ -28,7 +28,7 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 2Gi
   storageClassName: mayastor-1
 ---
 kind: Pod

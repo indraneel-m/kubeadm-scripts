@@ -7,7 +7,7 @@ sudo modprobe nvme-rdma
 sudo modprobe nvme-tcp
 
 wget -P /home/vagrant https://github.com/openebs/mayastor-control-plane/releases/download/v1.0.1/kubectl-mayastor.tar.gz
-sudo tar -xf kubectl-mayastor.tar.gz -C /usr/local/bin
+sudo tar -xf /home/vagrant/kubectl-mayastor.tar.gz -C /usr/local/bin
 sudo chmod +x /usr/local/bin/kubectl-mayastor
 
 kubectl label node master-node openebs.io/engine=mayastor
