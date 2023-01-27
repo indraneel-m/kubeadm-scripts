@@ -31,16 +31,25 @@ sudo apt-get -y install \
      gnupg \
      xfsprogs \
      curl \
-     coreutils
+     coreutils \
+     wget
+
+#https://serverfault.com/questions/1118051/failed-to-run-kubelet-validate-service-connection-cri-v1-runtime-api-is-not-im
+wget https://github.com/containerd/containerd/releases/download/v1.6.15/containerd-1.6.15-linux-amd64.tar.gz
+tar xvf containerd-1.6.15-linux-amd64.tar.gz
+sudo systemctl stop containerd
+cd bin
+sudo cp * /usr/bin/
+sudo systemctl start containerd
 
 #The following steps are commented out because etc-contaierd-config.toml is being copied beforehand.
 sudo mkdir -p /etc/containerd
 containerd config default | sudo tee /etc/containerd/config.toml
-sudo sed -i '/.*containerd.runtimes.runc.options.*/a SystemdCgroup = true' /etc/containerd/config.toml
+sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
 
 # Local registry preperation crictl
 #And apply the following #https://stackoverflow.com/questions/65681045/adding-insecure-registry-in-containerd
-awk '/endpoint/{print $0 "\n[plugins.\"io.containerd.grpc.v1.cri\".registry.mirrors.\"master-node:5000\"]\nendpoint = [\"http://master-node:5000\"]\n[plugins.\"io.containerd.grpc.v1.cri\".registry.configs]\n[plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"master-node:5000\".tls]\ninsecure_skip_verify = true";next}1' /etc/containerd/config.toml | sudo tee /etc/containerd/config.toml
+#awk '/endpoint/{print $0 "\n[plugins.\"io.containerd.grpc.v1.cri\".registry.mirrors.\"master-node:5000\"]\nendpoint = [\"http://master-node:5000\"]\n[plugins.\"io.containerd.grpc.v1.cri\".registry.configs]\n[plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"master-node:5000\".tls]\ninsecure_skip_verify = true";next}1' /etc/containerd/config.toml | sudo tee /etc/containerd/config.toml
 #The previous line adds in /etc/containerd/config.toml under 'endpoint = ["https://registry-1.docker.io"]' the following lines:
 #[plugins."io.containerd.grpc.v1.cri".registry.mirrors."master-node:5000"]
 #  endpoint = ["http://master-node:5000"]
@@ -128,7 +137,9 @@ deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 
 sudo apt-get update -y
-sudo apt-get install -y kubelet kubeadm kubectl
+#sudo apt-get install -y kubelet kubeadm kubectl
+# For a specific version:
+sudo apt-get install -qy kubelet=1.25.3-00 kubeadm=1.25.3-00 kubectl=1.25.3-00
 sudo apt-mark hold kubelet kubeadm kubectl
 
 # No firewall is installed
@@ -145,12 +156,14 @@ sudo systemctl enable kubelet
 
 
 #Install go
-sudo apt-get update -y
-sudo apt-get install -y wget
-wget https://golang.org/dl/go1.17.linux-amd64.tar.gz
-sudo tar -zxvf go1.17.linux-amd64.tar.gz -C /usr/local/
-rm go1.17.linux-amd64.tar.gz
+#sudo apt-get update -y
+#sudo apt-get install -y wget
+#wget https://golang.org/dl/go1.17.linux-amd64.tar.gz
+#sudo tar -zxvf go1.17.linux-amd64.tar.gz -C /usr/local/
+#rm go1.17.linux-amd64.tar.gz
+#echo "export PATH=/usr/local/go/bin:${PATH}" | sudo tee -a $HOME/.profile
+
+
 #echo "export PATH=/usr/local/go/bin:${PATH}" | sudo tee /etc/profile.d/go.sh
 #source /etc/profile.d/go.sh
-echo "export PATH=/usr/local/go/bin:${PATH}" | sudo tee -a $HOME/.profile
 #source $HOME/.profile

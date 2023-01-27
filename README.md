@@ -53,12 +53,12 @@ vagrant ssh master
 Nodes might have locally attached storage. This storage can be exposed to pods either through a filesystem which is mounted on the node or as a raw block device.
 
 > [...] note that local volumes are not suitable for most applications. Using local storage ties your application to that specific node, making your application harder to schedule. If that node or local volume encounters a failure and becomes inaccessible, then that pod also becomes inaccessible. In addition, many cloud providers do not provide extensive data durability guarantees for local storage, so you could lose all your data in certain scenarios.
-> 
+>
 > For those reasons, most applications should continue to use highly available, remotely accessible, durable storage.
-> 
+>
 > Suitable workloads
 > Some use cases that are suitable for local storage include:
-> 
+>
 > Caching of datasets that can leverage data gravity for fast processing
 > Distributed storage systems that shard or replicate data across multiple nodes. Examples include distributed datastores like Cassandra, or distributed file systems like Gluster or Ceph.
 > Suitable workloads are tolerant of node failures, data unavailability, and data loss. They provide critical, latency-sensitive infrastructure services to the rest of the cluster, and should run with high priority compared to other workloads.
