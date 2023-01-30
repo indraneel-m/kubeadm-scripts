@@ -50,6 +50,8 @@ sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/con
 # Local registry preperation crictl
 #And apply the following #https://stackoverflow.com/questions/65681045/adding-insecure-registry-in-containerd
 #awk '/endpoint/{print $0 "\n[plugins.\"io.containerd.grpc.v1.cri\".registry.mirrors.\"master-node:5000\"]\nendpoint = [\"http://master-node:5000\"]\n[plugins.\"io.containerd.grpc.v1.cri\".registry.configs]\n[plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"master-node:5000\".tls]\ninsecure_skip_verify = true";next}1' /etc/containerd/config.toml | sudo tee /etc/containerd/config.toml
+sudo sed -i '/.registry.mirrors]/a\[plugins.\"io.containerd.grpc.v1.cri\".registry.mirrors.\"master-node:5000\"]\nendpoint = [\"http://master-node:5000\"]\n' /etc/containerd/config.toml
+sudo sed -i '/.registry.configs]/a\[plugins.\"io.containerd.grpc.v1.cri\".registry.configs.\"master-node:5000\".tls]\ninsecure_skip_verify = true\n' /etc/containerd/config.toml
 #The previous line adds in /etc/containerd/config.toml under 'endpoint = ["https://registry-1.docker.io"]' the following lines:
 #[plugins."io.containerd.grpc.v1.cri".registry.mirrors."master-node:5000"]
 #  endpoint = ["http://master-node:5000"]
