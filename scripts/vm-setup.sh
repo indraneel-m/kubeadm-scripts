@@ -40,6 +40,9 @@ tar xvf containerd-1.6.15-linux-amd64.tar.gz
 sudo systemctl stop containerd
 cd bin
 sudo cp * /usr/bin/
+cd ..
+sudo rm -r bin
+sudo rm containerd-1.6.15-linux-amd64.tar.gz
 sudo systemctl start containerd
 
 #The following steps are commented out because etc-contaierd-config.toml is being copied beforehand.
@@ -78,6 +81,7 @@ sudo systemctl restart podman
 sudo apt-get update -y
 sudo apt-get -y install \
      nvme-cli \
+     unzip \
      fio
 
 sudo modprobe nvmet

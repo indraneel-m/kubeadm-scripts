@@ -5,7 +5,7 @@ metadata:
   namespace: mayastor
 spec:
   node: worker-node01
-  disks: ["/dev/nvme0n1"]
+  disks: [$TEST_BLKDEV]
 ---
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
@@ -24,12 +24,13 @@ kind: PersistentVolumeClaim
 metadata:
   name: ms-volume-claim
 spec:
+  storageClassName: mayastor-1
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
-  storageClassName: mayastor-1
+  volumeMode: Block
 ---
 kind: Pod
 apiVersion: v1
@@ -48,7 +49,7 @@ spec:
       args:
         - sleep
         - "1000000"
-      volumeMounts:
-        - mountPath: "/volume"
-          name: ms-volume
+      volumeDevices:
+        - name: ms-volume
+          devicePath: $TEST_BLKDEV
 #kubectl exec -it fio -- fio --name=benchtest --size=800m --filename=/volume/test --direct=1 --rw=randrw --ioengine=libaio --bs=4k --iodepth=16 --numjobs=8 --time_based --runtime=60
