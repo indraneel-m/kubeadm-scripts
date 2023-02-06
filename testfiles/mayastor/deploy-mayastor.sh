@@ -1,87 +1,108 @@
 #!/bin/bash
+set -ex
 # Mayastor setup
 sudo modprobe nvme-core
 sudo modprobe nvme-fabrics
 sudo modprobe nvme-fc
 sudo modprobe nvme-rdma
 sudo modprobe nvme-tcp
-#sudo modprobe nvme-loop
-#sudo modprobe nvmet
+sudo modprobe nvmet
 
-wget -P /home/vagrant https://github.com/openebs/mayastor-control-plane/releases/download/v1.0.4/kubectl-mayastor-x86_64-linux-musl.zip
-sudo unzip /home/vagrant/kubectl-mayastor-x86_64-linux-musl.zip -d /usr/local/bin
+../launch-private-container-registry.sh
+
+#Install the mayastor kubectl plugin from the binaries
+#https://github.com/openebs/mayastor-extensions/actions/runs/4066024991
+# Then dumping logs is possible
+#kubectl mayastor dump pools
+# General logging:
+#kubectl logs mayastor-io-engine-* -n mayastor
+#kubectl logs mayastor-io-engine-m94d5  -c io-engine -n mayastor
+
+sudo unzip /home/vagrant/testfiles/kubectl-mayastor-x86_64-linux-musl.zip -d /usr/local/bin
 sudo chmod +x /usr/local/bin/kubectl-mayastor
 
-kubectl label node master-node openebs.io/engine=mayastor
 kubectl label node worker-node01 openebs.io/engine=mayastor
 kubectl label node worker-node02 openebs.io/engine=mayastor
 kubectl label node worker-node03 openebs.io/engine=mayastor
 
-kubectl create namespace mayastor
+cd
+git clone https://github.com/MaisenbacherD/mayastor.git
+cd mayastor
+git checkout zns-support
+git submodule update --init
+INITIAL_TAG=$(git rev-parse --short=12 HEAD)
+CONTAINER_ENV=podman ./scripts/release.sh --registry master-node:5000 --image mayastor-io-engine
+podman tag master-node:5000/openebs/mayastor-io-engine:$INITIAL_TAG master-node:5000/openebs/mayastor-io-engine:v2.0.0-rc.2
+podman push master-node:5000/openebs/mayastor-io-engine:v2.0.0-rc.2
 
-##RBAC Resrouces
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor-control-plane/v1.0.4/deploy/operator-rbac.yaml
 
-##Custom Resource Definitions
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor-control-plane/v1.0.4/deploy/mayastorpoolcrd.yaml
+# mayastor-io-engine docker image is build from source with custom changes
+#podman pull docker.io/openebs/mayastor-io-engine:v2.0.0-rc.2
+#podman tag docker.io/openebs/mayastor-io-engine:v2.0.0-rc.2 master-node:5000/openebs/mayastor-io-engine:v2.0.0-rc.2
+#podman push master-node:5000/openebs/mayastor-io-engine:v2.0.0-rc.2
 
-##NATS
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor/v1.0.4/deploy/nats-deployment.yaml
-while [ $(kubectl -n mayastor get pods --selector=app=nats | grep "Running" | grep -c "2/2") -ne 3 ]; do
-    echo "Waiting for NATS pods to come up"
-    sleep 10
-done
+####### k8scsi
+podman pull quay.io/k8scsi/csi-provisioner:v2.1.1
+podman tag quay.io/k8scsi/csi-provisioner:v2.1.1 master-node:5000/k8scsi/csi-provisioner:v2.1.1
+podman push master-node:5000/k8scsi/csi-provisioner:v2.1.1
 
-##etcd
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor/v1.0.4/deploy/etcd/storage/localpv.yaml
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor/v1.0.4/deploy/etcd/statefulset.yaml
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor/v1.0.4/deploy/etcd/svc.yaml
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor/v1.0.4/deploy/etcd/svc-headless.yaml
-while [ $(kubectl -n mayastor get pods --selector=app.kubernetes.io/name=etcd | grep "Running" | grep -c "1/1") -ne 3 ]; do
-    echo "Waiting for etcd pods to come up"
-    sleep 10
-done
+podman pull quay.io/k8scsi/csi-attacher:v3.1.0
+podman tag quay.io/k8scsi/csi-attacher:v3.1.0 master-node:5000/k8scsi/csi-attacher:v3.1.0
+podman push master-node:5000/k8scsi/csi-attacher:v3.1.0
 
-##CSI Node Plugin
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor/v1.0.4/deploy/csi-daemonset.yaml
-while [ $(kubectl -n mayastor get daemonset mayastor-csi | grep "mayastor-csi" | awk 'substr($2, length($2), 1) == 3' | awk 'substr($3, length($3), 1) == 3' | awk 'substr($4, length($4), 1) == 3' | awk 'substr($5, length($5), 1) == 3' | awk 'substr($6, length($6), 1) == 3' | wc -l) -ne 1 ]; do
-    echo "Waiting for CSI node plugin to come up"
-    sleep 10
-done
+######## sig-storage
+podman pull k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.5.0
+podman tag k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.5.0 master-node:5000/sig-storage/csi-node-driver-registrar:v2.5.0
+podman push master-node:5000/sig-storage/csi-node-driver-registrar:v2.5.0
 
-##Core Agents
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor-control-plane/v1.0.4/deploy/core-agents-deployment.yaml
-while [ $(kubectl get pods -n mayastor --selector=app=core-agents | grep "Running" | grep -c "1/1") -ne 1 ]; do
-    echo "Waiting for core-agents pod to come up"
-    sleep 10
-done
+######## openebs
+podman pull docker.io/openebs/mayastor-agent-ha-cluster:v2.0.0-rc.2
+podman tag docker.io/openebs/mayastor-agent-ha-cluster:v2.0.0-rc.2 master-node:5000/openebs/mayastor-agent-ha-cluster:v2.0.0-rc.2
+podman push master-node:5000/openebs/mayastor-agent-ha-cluster:v2.0.0-rc.2
 
-##REST
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor-control-plane/v1.0.4/deploy/rest-deployment.yaml
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor-control-plane/v1.0.4/deploy/rest-service.yaml
-while [ $(kubectl get pods -n mayastor --selector=app=rest | grep "Running" | grep -c "1/1") -ne 1 ]; do
-    echo "Waiting for rest pod to come up"
-    sleep 10
-done
+podman pull docker.io/openebs/mayastor-agent-core:v2.0.0-rc.2
+podman tag docker.io/openebs/mayastor-agent-core:v2.0.0-rc.2 master-node:5000/openebs/mayastor-agent-core:v2.0.0-rc.2
+podman push master-node:5000/openebs/mayastor-agent-core:v2.0.0-rc.2
 
-##CSI Controller
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor-control-plane/v1.0.4/deploy/csi-deployment.yaml
-while [ $(kubectl get pods -n mayastor --selector=app=csi-controller | grep "Running" | grep -c "3/3") -ne 1 ]; do
-    echo "Waiting for csi controller pods to come up"
-    sleep 10
-done
+podman pull docker.io/openebs/mayastor-api-rest:v2.0.0-rc.2
+podman tag docker.io/openebs/mayastor-api-rest:v2.0.0-rc.2 master-node:5000/openebs/mayastor-api-rest:v2.0.0-rc.2
+podman push master-node:5000/openebs/mayastor-api-rest:v2.0.0-rc.2
 
-##MSP Operator
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor-control-plane/v1.0.4/deploy/msp-deployment.yaml
-while [ $(kubectl get pods -n mayastor --selector=app=msp-operator | grep "Running" | grep -c "1/1") -ne 1 ]; do
-    echo "Waiting for msp-operator pods to come up"
-    sleep 10
-done
+podman pull docker.io/openebs/mayastor-csi-node:v2.0.0-rc.2
+podman tag docker.io/openebs/mayastor-csi-node:v2.0.0-rc.2 master-node:5000/openebs/mayastor-csi-node:v2.0.0-rc.2
+podman push master-node:5000/openebs/mayastor-csi-node:v2.0.0-rc.2
 
-##Data Plane
-kubectl apply -f https://raw.githubusercontent.com/openebs/mayastor/v1.0.4/deploy/mayastor-daemonset.yaml
-while [ $(kubectl -n mayastor get daemonset mayastor | grep "mayastor" | awk 'substr($2, length($2), 1) == 3' | awk 'substr($3, length($3), 1) == 3' | awk 'substr($4, length($4), 1) == 3' | awk 'substr($5, length($5), 1) == 3' | awk 'substr($6, length($6), 1) == 3' | wc -l) -ne 1 ]; do
-    echo "Waiting for data plane to come up"
-    sleep 10
-done
+podman pull docker.io/openebs/mayastor-obs-callhome:v2.0.0-rc.2
+podman tag docker.io/openebs/mayastor-obs-callhome:v2.0.0-rc.2 master-node:5000/openebs/mayastor-obs-callhome:v2.0.0-rc.2
+podman push master-node:5000/openebs/mayastor-obs-callhome:v2.0.0-rc.2
 
+podman pull docker.io/openebs/mayastor-operator-diskpool:v2.0.0-rc.2
+podman tag docker.io/openebs/mayastor-operator-diskpool:v2.0.0-rc.2 master-node:5000/openebs/mayastor-operator-diskpool:v2.0.0-rc.2
+podman push master-node:5000/openebs/mayastor-operator-diskpool:v2.0.0-rc.2
+
+podman pull docker.io/openebs/mayastor-csi-controller:v2.0.0-rc.2
+podman tag docker.io/openebs/mayastor-csi-controller:v2.0.0-rc.2 master-node:5000/openebs/mayastor-csi-controller:v2.0.0-rc.2
+podman push master-node:5000/openebs/mayastor-csi-controller:v2.0.0-rc.2
+
+podman pull docker.io/openebs/mayastor-agent-ha-node:v2.0.0-rc.2
+podman tag docker.io/openebs/mayastor-agent-ha-node:v2.0.0-rc.2 master-node:5000/openebs/mayastor-agent-ha-node:v2.0.0-rc.2
+podman push master-node:5000/openebs/mayastor-agent-ha-node:v2.0.0-rc.2
+
+podman pull docker.io/openebs/mayastor-metrics-exporter-pool:v2.0.0-rc.2
+podman tag docker.io/openebs/mayastor-metrics-exporter-pool:v2.0.0-rc.2 master-node:5000/openebs/mayastor-metrics-exporter-pool:v2.0.0-rc.2
+podman push master-node:5000/openebs/mayastor-metrics-exporter-pool:v2.0.0-rc.2
+
+
+# Add repo
+helm repo add mayastor https://openebs.github.io/mayastor-extensions/
+# Search releases
+#helm search repo mayastor --devel --versions
+# Install specific version on non-prod playground
+#helm install mayastor mayastor/mayastor -n mayastor --create-namespace --set="etcd.replicaCount=1,etcd.persistence.storageClass=manual,etcd.livenessProbe.initialDelaySeconds=5,etcd.readinessProbe.initialDelaySeconds=5,loki-stack.loki.persistence.storageClassName=manual" --version 2.0.0-rc.2
+helm install mayastor mayastor/mayastor -n mayastor --create-namespace --set="etcd.replicaCount=1,etcd.persistence.storageClass=manual,etcd.livenessProbe.initialDelaySeconds=5,etcd.readinessProbe.initialDelaySeconds=5,loki-stack.loki.persistence.storageClassName=manual,image.registry=master-node:5000" --version 2.0.0-rc.2
+# See the state of the deployed pods
+#kubectl get pods -n mayastor
+# List helm deployments
+#helm list -A
+# Uninstall helm deployment
+#helm uninstall mayastor -n mayastor

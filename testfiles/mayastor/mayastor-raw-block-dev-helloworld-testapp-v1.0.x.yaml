@@ -1,11 +1,11 @@
 apiVersion: "openebs.io/v1alpha1"
-kind: DiskPool
+kind: MayastorPool
 metadata:
   name: pool-on-node-1
   namespace: mayastor
 spec:
   node: worker-node01
-  disks: ["$TEST_BLKDEV"]
+  disks: [$TEST_BLKDEV]
 ---
 kind: StorageClass
 apiVersion: storage.k8s.io/v1

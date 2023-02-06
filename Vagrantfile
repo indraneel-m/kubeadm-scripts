@@ -27,7 +27,7 @@ Vagrant.configure("2") do |config|
       master.vm.hostname = "master-node"
       master.vm.network "private_network", ip: "192.168.200.10"
       master.vm.provider :libvirt do |libvirt|
-        libvirt.cpus = 8
+        libvirt.cpus = 4
         libvirt.memory = 8192
         libvirt.cpu_mode = "host-passthrough"
 #        libvirt.pci :bus => '0x01', :slot => '0x00', :function => '0x0'
@@ -46,7 +46,7 @@ Vagrant.configure("2") do |config|
       node.vm.hostname = "worker-node0#{i}"
       node.vm.network "private_network", ip: "192.168.200.1#{i}"
       node.vm.provider :libvirt do |libvirt|
-        libvirt.cpus = 3
+        libvirt.cpus = 8
         libvirt.memory = 8192
         libvirt.cpu_mode = "host-passthrough"
       end
