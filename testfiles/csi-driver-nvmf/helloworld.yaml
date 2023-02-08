@@ -1,0 +1,57 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: csi-nvmf-sc
+provisioner: csi.nvmf.com
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: csi-nvmf-pv
+spec:
+  storageClassName: csi-nvmf-sc
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 20Gi
+  csi:
+    driver: csi.nvmf.com
+    volumeHandle: nvmf-data-id
+    volumeAttributes:
+      targetTrAddr: "192.168.200.11"
+      targetTrPort: "49153"
+      targetTrType: "tcp"
+      deviceUUID: "ef1c18c9-751c-453f-864c-43d746b0ff2c"
+      nqn: "nqn.2022-08.org.test-nvmf.example"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: csi-nvmf-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: csi-nvmf-sc
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ubuntu-pod
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu:22.10
+      command: ["/bin/sleep"]
+      args: [ "3650d" ]
+      volumeMounts:
+        - mountPath: /dev/nvmf
+          name: nvmf-volume
+  volumes:
+    - name: nvmf-volume
+      persistentVolumeClaim:
+        claimName: csi-nvmf-pvc
