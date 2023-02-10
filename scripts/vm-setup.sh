@@ -173,3 +173,7 @@ sudo systemctl enable kubelet
 #echo "export PATH=/usr/local/go/bin:${PATH}" | sudo tee /etc/profile.d/go.sh
 #source /etc/profile.d/go.sh
 #source $HOME/.profile
+
+
+# Install nix
+sh <(curl -L https://nixos.org/nix/install) --no-daemon

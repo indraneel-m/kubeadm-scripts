@@ -18,6 +18,8 @@ sudo modprobe nvmet
 #kubectl logs mayastor-io-engine-* -n mayastor
 #kubectl logs mayastor-io-engine-m94d5  -c io-engine -n mayastor
 
+
+TAG="v2.0.0-rc.2"
 sudo unzip /home/vagrant/testfiles/kubectl-mayastor-x86_64-linux-musl.zip -d /usr/local/bin
 sudo chmod +x /usr/local/bin/kubectl-mayastor
 
@@ -32,14 +34,14 @@ git checkout zns-support
 git submodule update --init
 INITIAL_TAG=$(git rev-parse --short=12 HEAD)
 CONTAINER_ENV=podman ./scripts/release.sh --registry master-node:5000 --image mayastor-io-engine
-podman tag master-node:5000/openebs/mayastor-io-engine:$INITIAL_TAG master-node:5000/openebs/mayastor-io-engine:v2.0.0-rc.2
-podman push master-node:5000/openebs/mayastor-io-engine:v2.0.0-rc.2
+podman tag master-node:5000/openebs/mayastor-io-engine:$INITIAL_TAG master-node:5000/openebs/mayastor-io-engine:$TAG
+podman push master-node:5000/openebs/mayastor-io-engine:$TAG
 
 
 # mayastor-io-engine docker image is build from source with custom changes
-#podman pull docker.io/openebs/mayastor-io-engine:v2.0.0-rc.2
-#podman tag docker.io/openebs/mayastor-io-engine:v2.0.0-rc.2 master-node:5000/openebs/mayastor-io-engine:v2.0.0-rc.2
-#podman push master-node:5000/openebs/mayastor-io-engine:v2.0.0-rc.2
+#podman pull docker.io/openebs/mayastor-io-engine:$TAG
+#podman tag docker.io/openebs/mayastor-io-engine:$TAG master-node:5000/openebs/mayastor-io-engine:$TAG
+#podman push master-node:5000/openebs/mayastor-io-engine:$TAG
 
 ####### k8scsi
 podman pull quay.io/k8scsi/csi-provisioner:v2.1.1
@@ -56,41 +58,41 @@ podman tag k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.5.0 master-node:5
 podman push master-node:5000/sig-storage/csi-node-driver-registrar:v2.5.0
 
 ######## openebs
-podman pull docker.io/openebs/mayastor-agent-ha-cluster:v2.0.0-rc.2
-podman tag docker.io/openebs/mayastor-agent-ha-cluster:v2.0.0-rc.2 master-node:5000/openebs/mayastor-agent-ha-cluster:v2.0.0-rc.2
-podman push master-node:5000/openebs/mayastor-agent-ha-cluster:v2.0.0-rc.2
+podman pull docker.io/openebs/mayastor-agent-ha-cluster:$TAG
+podman tag docker.io/openebs/mayastor-agent-ha-cluster:$TAG master-node:5000/openebs/mayastor-agent-ha-cluster:$TAG
+podman push master-node:5000/openebs/mayastor-agent-ha-cluster:$TAG
 
-podman pull docker.io/openebs/mayastor-agent-core:v2.0.0-rc.2
-podman tag docker.io/openebs/mayastor-agent-core:v2.0.0-rc.2 master-node:5000/openebs/mayastor-agent-core:v2.0.0-rc.2
-podman push master-node:5000/openebs/mayastor-agent-core:v2.0.0-rc.2
+podman pull docker.io/openebs/mayastor-agent-core:$TAG
+podman tag docker.io/openebs/mayastor-agent-core:$TAG master-node:5000/openebs/mayastor-agent-core:$TAG
+podman push master-node:5000/openebs/mayastor-agent-core:$TAG
 
-podman pull docker.io/openebs/mayastor-api-rest:v2.0.0-rc.2
-podman tag docker.io/openebs/mayastor-api-rest:v2.0.0-rc.2 master-node:5000/openebs/mayastor-api-rest:v2.0.0-rc.2
-podman push master-node:5000/openebs/mayastor-api-rest:v2.0.0-rc.2
+podman pull docker.io/openebs/mayastor-api-rest:$TAG
+podman tag docker.io/openebs/mayastor-api-rest:$TAG master-node:5000/openebs/mayastor-api-rest:$TAG
+podman push master-node:5000/openebs/mayastor-api-rest:$TAG
 
-podman pull docker.io/openebs/mayastor-csi-node:v2.0.0-rc.2
-podman tag docker.io/openebs/mayastor-csi-node:v2.0.0-rc.2 master-node:5000/openebs/mayastor-csi-node:v2.0.0-rc.2
-podman push master-node:5000/openebs/mayastor-csi-node:v2.0.0-rc.2
+podman pull docker.io/openebs/mayastor-csi-node:$TAG
+podman tag docker.io/openebs/mayastor-csi-node:$TAG master-node:5000/openebs/mayastor-csi-node:$TAG
+podman push master-node:5000/openebs/mayastor-csi-node:$TAG
 
-podman pull docker.io/openebs/mayastor-obs-callhome:v2.0.0-rc.2
-podman tag docker.io/openebs/mayastor-obs-callhome:v2.0.0-rc.2 master-node:5000/openebs/mayastor-obs-callhome:v2.0.0-rc.2
-podman push master-node:5000/openebs/mayastor-obs-callhome:v2.0.0-rc.2
+podman pull docker.io/openebs/mayastor-obs-callhome:$TAG
+podman tag docker.io/openebs/mayastor-obs-callhome:$TAG master-node:5000/openebs/mayastor-obs-callhome:$TAG
+podman push master-node:5000/openebs/mayastor-obs-callhome:$TAG
 
-podman pull docker.io/openebs/mayastor-operator-diskpool:v2.0.0-rc.2
-podman tag docker.io/openebs/mayastor-operator-diskpool:v2.0.0-rc.2 master-node:5000/openebs/mayastor-operator-diskpool:v2.0.0-rc.2
-podman push master-node:5000/openebs/mayastor-operator-diskpool:v2.0.0-rc.2
+podman pull docker.io/openebs/mayastor-operator-diskpool:$TAG
+podman tag docker.io/openebs/mayastor-operator-diskpool:$TAG master-node:5000/openebs/mayastor-operator-diskpool:$TAG
+podman push master-node:5000/openebs/mayastor-operator-diskpool:$TAG
 
-podman pull docker.io/openebs/mayastor-csi-controller:v2.0.0-rc.2
-podman tag docker.io/openebs/mayastor-csi-controller:v2.0.0-rc.2 master-node:5000/openebs/mayastor-csi-controller:v2.0.0-rc.2
-podman push master-node:5000/openebs/mayastor-csi-controller:v2.0.0-rc.2
+podman pull docker.io/openebs/mayastor-csi-controller:$TAG
+podman tag docker.io/openebs/mayastor-csi-controller:$TAG master-node:5000/openebs/mayastor-csi-controller:$TAG
+podman push master-node:5000/openebs/mayastor-csi-controller:$TAG
 
-podman pull docker.io/openebs/mayastor-agent-ha-node:v2.0.0-rc.2
-podman tag docker.io/openebs/mayastor-agent-ha-node:v2.0.0-rc.2 master-node:5000/openebs/mayastor-agent-ha-node:v2.0.0-rc.2
-podman push master-node:5000/openebs/mayastor-agent-ha-node:v2.0.0-rc.2
+podman pull docker.io/openebs/mayastor-agent-ha-node:$TAG
+podman tag docker.io/openebs/mayastor-agent-ha-node:$TAG master-node:5000/openebs/mayastor-agent-ha-node:$TAG
+podman push master-node:5000/openebs/mayastor-agent-ha-node:$TAG
 
-podman pull docker.io/openebs/mayastor-metrics-exporter-pool:v2.0.0-rc.2
-podman tag docker.io/openebs/mayastor-metrics-exporter-pool:v2.0.0-rc.2 master-node:5000/openebs/mayastor-metrics-exporter-pool:v2.0.0-rc.2
-podman push master-node:5000/openebs/mayastor-metrics-exporter-pool:v2.0.0-rc.2
+podman pull docker.io/openebs/mayastor-metrics-exporter-pool:$TAG
+podman tag docker.io/openebs/mayastor-metrics-exporter-pool:$TAG master-node:5000/openebs/mayastor-metrics-exporter-pool:$TAG
+podman push master-node:5000/openebs/mayastor-metrics-exporter-pool:$TAG
 
 
 # Add repo
@@ -98,8 +100,8 @@ helm repo add mayastor https://openebs.github.io/mayastor-extensions/
 # Search releases
 #helm search repo mayastor --devel --versions
 # Install specific version on non-prod playground
-#helm install mayastor mayastor/mayastor -n mayastor --create-namespace --set="etcd.replicaCount=1,etcd.persistence.storageClass=manual,etcd.livenessProbe.initialDelaySeconds=5,etcd.readinessProbe.initialDelaySeconds=5,loki-stack.loki.persistence.storageClassName=manual" --version 2.0.0-rc.2
-helm install mayastor mayastor/mayastor -n mayastor --create-namespace --set="etcd.replicaCount=1,etcd.persistence.storageClass=manual,etcd.livenessProbe.initialDelaySeconds=5,etcd.readinessProbe.initialDelaySeconds=5,loki-stack.loki.persistence.storageClassName=manual,image.registry=master-node:5000" --version 2.0.0-rc.2
+#helm install mayastor mayastor/mayastor -n mayastor --create-namespace --set="etcd.replicaCount=1,etcd.persistence.storageClass=manual,etcd.livenessProbe.initialDelaySeconds=5,etcd.readinessProbe.initialDelaySeconds=5,loki-stack.loki.persistence.storageClassName=manual" --version 2.0.0
+helm install mayastor mayastor/mayastor -n mayastor --create-namespace --set="etcd.replicaCount=1,etcd.persistence.storageClass=manual,etcd.livenessProbe.initialDelaySeconds=5,etcd.readinessProbe.initialDelaySeconds=5,loki-stack.loki.persistence.storageClassName=manual,image.registry=master-node:5000,image.tag=${TAG},obs.callhome.enabled=false" --version 2.0.0-rc.2
 # See the state of the deployed pods
 #kubectl get pods -n mayastor
 # List helm deployments
