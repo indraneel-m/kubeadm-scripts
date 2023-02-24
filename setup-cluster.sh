@@ -4,7 +4,7 @@
 #vagrant destroy master node01 node02 -f
 #vagrant up
 #For Fedora
-#vagrant up --no-parallel
+vagrant up --no-parallel
 #vagrant reload
 #vagrant reload
 

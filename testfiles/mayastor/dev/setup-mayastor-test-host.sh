@@ -1,5 +1,5 @@
 #!/bin/bash
-
+sudo modprobe nvme_tcp
 sudo modprobe nbd
 sudo modprobe nvmet
 sudo modprobe nvmet-rdma
