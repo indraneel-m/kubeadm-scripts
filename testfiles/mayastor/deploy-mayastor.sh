@@ -6,6 +6,13 @@ sudo modprobe nvme-fc
 sudo modprobe nvme-rdma
 sudo modprobe nvme-tcp
 
+#Launch the private registry
+/home/vagrant/testfiles/launch-private-container-registry.sh
+#Build Mayastor images and export to local registry
+cd ~/mayastor_csal
+./scripts/release.sh --registry master-node:5000 --image mayastor-io-engine --alias-tag v1.0.4
+cd -
+
 wget -P /home/vagrant https://github.com/openebs/mayastor-control-plane/releases/download/v1.0.4/kubectl-mayastor-x86_64-linux-musl.zip
 sudo tar -xf /home/vagrant/kubectl-mayastor-x86_64-linux-musl.zip -C /usr/local/bin
 sudo chmod +x /usr/local/bin/kubectl-mayastor
