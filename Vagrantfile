@@ -1,5 +1,6 @@
 
 Vagrant.configure("2") do |config|
+    config.ssh.forward_agent = true
     config.vm.provision "shell", inline: <<-SHELL
         apt-get update -y
         echo "192.168.200.10  master-node" >> /etc/hosts
