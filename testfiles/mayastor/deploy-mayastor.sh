@@ -37,6 +37,12 @@ CONTAINER_ENV=podman ./scripts/release.sh --registry master-node:5000 --image ma
 podman tag master-node:5000/openebs/mayastor-io-engine:$INITIAL_TAG master-node:5000/openebs/mayastor-io-engine:$TAG
 podman push master-node:5000/openebs/mayastor-io-engine:$TAG
 
+CONTAINER_ENV=podman ./scripts/release.sh --registry master-node:5000 --image mayastor-io-engine-client
+podman tag master-node:5000/openebs/mayastor-io-engine-client:$INITIAL_TAG master-node:5000/openebs/mayastor-io-engine-client:$TAG
+podman push master-node:5000/openebs/mayastor-io-engine-client:$TAG
+#Now pull and run the image on the node where you want to interact with the io-engine
+#podman pull master-node:5000/openebs/mayastor-io-engine-client:$TAG
+#podman run -it master-node:5000/openebs/mayastor-io-engine-client:$TAG
 
 # mayastor-io-engine docker image is build from source with custom changes
 #podman pull docker.io/openebs/mayastor-io-engine:$TAG
