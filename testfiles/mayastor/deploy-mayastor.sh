@@ -20,7 +20,7 @@ sudo modprobe nvmet
 
 
 TAG="v2.0.0-rc.2"
-sudo unzip /home/vagrant/testfiles/kubectl-mayastor-x86_64-linux-musl.zip -d /usr/local/bin
+sudo unzip ~/kubectl-mayastor-x86_64-linux-musl.zip -d /usr/local/bin
 sudo chmod +x /usr/local/bin/kubectl-mayastor
 
 kubectl label node worker-node01 openebs.io/engine=mayastor
