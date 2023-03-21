@@ -16,8 +16,8 @@ Scripts &amp; Kubernetes manifests for Kubeadm Kubernetes cluster setup
  - Start libvirtd and install the vagrant libvirt plugin
     ```
     sudo systemctl start libvirtd
-
     vagrant plugin install vagrant-libvirt
+    sudo usermod -a -G libvirt $(whoami)
     ```
 - Custom Kernel: Install podman in order to build a new kernel that will be applied to the nodes.
     ```
